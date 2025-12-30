@@ -4,10 +4,9 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.inject.Inject;
 import lombok.Getter;
-import net.runelite.api.ItemID;
-import net.runelite.api.widgets.WidgetInfo;
+import net.runelite.api.gameval.ItemID;
+import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.widgets.WidgetItem;
-import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.overlay.WidgetItemOverlay;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -20,7 +19,6 @@ public class BankItemHighlight extends WidgetItemOverlay
     private final ROFTrackerPlugin plugin;
 
     private final ROFTrackerConfig config;
-    private final ItemManager itemManager;
 
     @Getter
     private final Cache<Integer, BufferedImage> heatmapImages = CacheBuilder.newBuilder()
@@ -29,22 +27,20 @@ public class BankItemHighlight extends WidgetItemOverlay
             .build();
 
     @Inject
-    BankItemHighlight(ROFTrackerPlugin plugin, ROFTrackerConfig config, ItemManager itemManager)
+    BankItemHighlight(ROFTrackerPlugin plugin, ROFTrackerConfig config)
     {
         this.plugin = plugin;
         this.config = config;
-        this.itemManager = itemManager;
         showOnBank();
     }
 
     @Override
     public void renderItemOverlay(Graphics2D graphics, int itemId, WidgetItem itemWidget)
     {
-        if (itemWidget.getWidget().getParentId() != WidgetInfo.BANK_ITEM_CONTAINER.getId())
+        if (itemWidget.getWidget().getParentId() != InterfaceID.Bankmain.ITEMS)
         {
             return;
         }
-
         if (itemWidget.getId() == ItemID.IRON_ORE && plugin.isPlayerWearingROF() ||
             itemWidget.getId() == ItemID.RING_OF_FORGING && !plugin.isPlayerWearingROF())
         {

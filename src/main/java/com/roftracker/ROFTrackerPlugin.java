@@ -3,14 +3,16 @@ package com.roftracker;
 import com.google.inject.Provides;
 import net.runelite.api.*;
 import net.runelite.api.events.*;
+import net.runelite.api.gameval.InterfaceID;
+import net.runelite.api.gameval.InventoryID;
 import net.runelite.api.widgets.Widget;
-import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.client.Notifier;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.game.ItemManager;
+import net.runelite.api.gameval.ItemID;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
@@ -27,6 +29,8 @@ import java.awt.image.BufferedImage;
 )
 public class ROFTrackerPlugin extends Plugin
 {
+	private static final String ROF_CHARGE_KEY = "ringOfForging";
+
 	@Inject
 	private Client client;
 
@@ -70,7 +74,7 @@ public class ROFTrackerPlugin extends Plugin
 	{
 		clientThread.invokeLater(() ->
 		{
-			final ItemContainer container = client.getItemContainer(InventoryID.EQUIPMENT);
+			final ItemContainer container = client.getItemContainer(InventoryID.WORN);
 			if (container != null)
 			{
 				checkInventory(container.getItems());
@@ -96,7 +100,7 @@ public class ROFTrackerPlugin extends Plugin
 	@Subscribe
 	public void onItemContainerChanged(ItemContainerChanged event)
 	{
-		if (event.getItemContainer() != client.getItemContainer(InventoryID.EQUIPMENT))
+		if (event.getItemContainer() != client.getItemContainer(InventoryID.WORN))
 		{
 			return;
 		}
@@ -153,7 +157,7 @@ public class ROFTrackerPlugin extends Plugin
 		if (isBankVisible())
 		{
 			removeBankOverlay();
-			addBankIconOverlay(null);
+			addBankIconOverlay();
 		}
 	}
 
@@ -249,7 +253,7 @@ public class ROFTrackerPlugin extends Plugin
 	}
 
 
-	private void addBankIconOverlay(final Rectangle rect)
+	private void addBankIconOverlay()
 	{
 		redrawBankOverlay();
 	}
@@ -263,7 +267,7 @@ public class ROFTrackerPlugin extends Plugin
 		overlayManager.remove(bankItemOverlayROF);
 		if (config.cbBankOutline())
 		{
-			bankItemOverlayROF = new BankItemHighlight(this, config, itemManager);
+			bankItemOverlayROF = new BankItemHighlight(this, config);
 			overlayManager.add(bankItemOverlayROF);
 		}
 	}
@@ -295,7 +299,7 @@ public class ROFTrackerPlugin extends Plugin
 
 	private int getRingCharge()
 	{
-		return getItemCharges("ringOfForging");
+		return getItemCharges(ROF_CHARGE_KEY);
 	}
 
 	// From Item Charges plugin
@@ -316,7 +320,7 @@ public class ROFTrackerPlugin extends Plugin
 
 	boolean isBankVisible()
 	{
-		Widget bank = client.getWidget(WidgetInfo.BANK_CONTAINER);
+		final Widget bank = client.getWidget(InterfaceID.Bankmain.ITEMS);
 		return bank != null && !bank.isHidden();
 	}
 
