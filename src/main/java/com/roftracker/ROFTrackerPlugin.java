@@ -108,7 +108,7 @@ public class ROFTrackerPlugin extends Plugin
 		redrawBankOverlay();
 	}
 
-	@Subscribe
+	@Subscribe(priority = -1e9f)
 	public void onChatMessage(ChatMessage event)
 	{
 		if (event.getMessage().equals("You retrieve a bar of iron."))
