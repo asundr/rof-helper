@@ -14,12 +14,10 @@ import java.util.concurrent.TimeUnit;
 
 public class BankItemHighlight extends WidgetItemOverlay
 {
-    private Rectangle bounds = null;
-
     private final ROFTrackerPlugin plugin;
-
     private final ROFTrackerConfig config;
 
+    private Rectangle bounds = null;
     @Getter
     private final Cache<Integer, BufferedImage> heatmapImages = CacheBuilder.newBuilder()
             .maximumSize(160)
@@ -55,14 +53,10 @@ public class BankItemHighlight extends WidgetItemOverlay
 
             graphics.setColor(config.colorBankOutline());
             graphics.drawRect(bounds.x,  bounds.y, bounds.width, bounds.height);
-            Color fill = config.colorBankOutline();
+            final Color fill = config.colorBankOutline();
             graphics.setColor(new Color(fill.getRed(), fill.getGreen(), fill.getBlue(), 20));
             graphics.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
-
-            //final BufferedImage image = itemManager.getImage(itemWidget.getId(), 1, false);
-            //graphics.drawImage(image, bounds.x, bounds.y, null);
         }
-
     }
 
 }

@@ -30,37 +30,33 @@ import java.awt.image.BufferedImage;
 public class ROFTrackerPlugin extends Plugin
 {
 	private static final String ROF_CHARGE_KEY = "ringOfForging";
+	private final static String GROUP_NAME_CHARGE = "itemCharge";
+	private final static String MESSAGE_RETRIEVE_BAR = "You retrieve a bar of iron.";
+	private final static String MESSAGE_RING_MELTED = "Your Ring of Forging has melted.";
+	private final static String MESSAGE_FAIL_TO_REFINE = "The ore is too impure and you fail to refine it.";
+	private final static String NOTIFY_WITHOUT_RING = "WARNING: Smelting without Ring of Forging.";
+	private final static String NOTIFY_RING_MELTED = "Your Ring of Forging has melted!";
 
 	@Inject
 	private Client client;
-
 	@Inject
 	private ClientThread clientThread;
-
 	@Inject
 	private ROFTrackerConfig config;
-
 	@Inject
 	private InfoBoxManager infoBoxManager;
-
 	@Inject
 	private OverlayManager overlayManager;
-
 	@Inject
 	private ItemManager itemManager;
-
 	@Inject
 	private ConfigManager configManager;
-
 	@Inject
 	private Notifier notifier;
 
 	private ROFChargeCounter counterBox = null;
-
 	private BankItemHighlight bankItemOverlayROF = null;
-
 	private WarningOverlay warningOverlay = null;
-
 	private boolean playerWearingROF = false;
 
 	@Provides
@@ -111,42 +107,41 @@ public class ROFTrackerPlugin extends Plugin
 	@Subscribe(priority = -1e9f)
 	public void onChatMessage(ChatMessage event)
 	{
-		if (event.getMessage().equals("You retrieve a bar of iron."))
+		if (event.getMessage().equals(MESSAGE_RETRIEVE_BAR))
 		{
 			// Smelting iron without wearing ROF
 			if (counterBox == null)
 			{
 				if (config.cbNotifyOnSmeltWithoutRing())
 				{
-					notifier.notify("WARNING: Smelting without Ring of Forging.", TrayIcon.MessageType.ERROR);
+					notifier.notify(NOTIFY_WITHOUT_RING, TrayIcon.MessageType.ERROR);
 				}
 			}
 			// Player is wearing ROF, update the charge count
 			else
 			{
 				updateInfoBox();
-				// TODO: duplicated code to update count during smelting, should refactor
-				int chargeCount = getRingCharge();
+				final int chargeCount = getRingCharge();
 				if (counterBox != null)
 				{
 					counterBox.setCount(chargeCount);
 				}
 			}
 		}
-		else if (event.getMessage().equals("Your Ring of Forging has melted."))
+		else if (event.getMessage().equals(MESSAGE_RING_MELTED))
 		{
 			if (config.cbMeltNotify())
 			{
-				notifier.notify("Your Ring of Forging has melted!", TrayIcon.MessageType.ERROR);
+				notifier.notify(NOTIFY_RING_MELTED, TrayIcon.MessageType.ERROR);
 			}
 			updateMissingROF();
 		}
 		// Smelting iron without wearing ROF
-		else if (event.getMessage().equals("The ore is too impure and you fail to refine it."))
+		else if (event.getMessage().equals(MESSAGE_FAIL_TO_REFINE))
 		{
 			if (config.cbNotifyOnSmeltWithoutRing())
 			{
-				notifier.notify("WARNING: Smelting without Ring of Forging.", TrayIcon.MessageType.ERROR);
+				notifier.notify(NOTIFY_WITHOUT_RING, TrayIcon.MessageType.ERROR);
 			}
 		}
 	}
@@ -218,8 +213,7 @@ public class ROFTrackerPlugin extends Plugin
 
 	private void updateInfobox(final Item item, final ItemComposition comp)
 	{
-		// TODO: should refactor this and overloaded func (params unnecessary, could use better func name)
-		int chargeCount = getRingCharge();
+		final int chargeCount = getRingCharge();
 		if (counterBox != null && counterBox.getItemID() == item.getId())
 		{
 			counterBox.setCount(chargeCount);
@@ -246,12 +240,11 @@ public class ROFTrackerPlugin extends Plugin
 	private void createInfobox()
 	{
 		removeInfobox();
-		int chargeCount = getRingCharge();
+		final int chargeCount = getRingCharge();
 		final BufferedImage image = itemManager.getImage(ItemID.RING_OF_FORGING, 1, false);
 		counterBox = new ROFChargeCounter(this, ItemID.RING_OF_FORGING, chargeCount, image);
 		infoBoxManager.addInfoBox(counterBox);
 	}
-
 
 	private void addBankIconOverlay()
 	{
@@ -263,7 +256,8 @@ public class ROFTrackerPlugin extends Plugin
 		overlayManager.remove(bankItemOverlayROF);
 	}
 
-	private void redrawBankOverlay() {
+	private void redrawBankOverlay()
+	{
 		overlayManager.remove(bankItemOverlayROF);
 		if (config.cbBankOutline())
 		{
@@ -289,7 +283,7 @@ public class ROFTrackerPlugin extends Plugin
 
 	private void updateMissingROF()
 	{
-		int chargeCount = getRingCharge();
+		final int chargeCount = getRingCharge();
 		removeInfobox();
 		if (config.cbWarningBox() && warningOverlay == null)
 		{
@@ -303,22 +297,13 @@ public class ROFTrackerPlugin extends Plugin
 	}
 
 	// From Item Charges plugin
-	int getItemCharges(String key)
+	private int getItemCharges(String key)
 	{
-		final String groupName = "itemCharge";
-		Integer i = configManager.getConfiguration(groupName, key, Integer.class);
-		if (i != null)
-		{
-			configManager.unsetConfiguration(groupName, key);
-			configManager.setRSProfileConfiguration(groupName, key, i);
-			return i;
-		}
-
-		i = configManager.getRSProfileConfiguration(groupName, key, Integer.class);
+		Integer i = configManager.getRSProfileConfiguration(GROUP_NAME_CHARGE, key, Integer.class);
 		return i == null ? -1 : i;
 	}
 
-	boolean isBankVisible()
+	private boolean isBankVisible()
 	{
 		final Widget bank = client.getWidget(InterfaceID.Bankmain.ITEMS);
 		return bank != null && !bank.isHidden();
